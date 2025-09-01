@@ -29,11 +29,18 @@ export class FacebookWebhookController {
       `Verificación de webhook recibida: mode=${mode}, token=${verifyToken}`,
     );
 
-    return this.client.send('facebook.webhook.verify', {
-      mode,
-      challenge,
-      verifyToken,
-    });
+    return this.client
+      .send('facebook.webhook.verify', {
+        mode,
+        challenge,
+        verifyToken,
+      })
+      .pipe(
+        catchError((err) => {
+          this.logger.error('Error al verificar el webhook:', err);
+          throw new RpcException(err);
+        }),
+      );
   }
 
   @Post()
