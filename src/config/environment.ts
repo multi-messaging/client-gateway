@@ -7,6 +7,8 @@ interface Environment {
   RABBITMQ_URL: string;
   RABBITMQ_QUEUE: string;
   FACEBOOK_SERVICE_NAME: string;
+  INSTAGRAM_SERVICE_NAME: string;
+  WHATSAPP_SERVICE_NAME: string;
 }
 
 const envSchema = joi
@@ -15,6 +17,8 @@ const envSchema = joi
     RABBITMQ_URL: joi.string().uri().default('amqp://localhost:5672'),
     RABBITMQ_QUEUE: joi.string().default('messages_queue'),
     FACEBOOK_SERVICE_NAME: joi.string().default('FACEBOOK_SERVICE'),
+    INSTAGRAM_SERVICE_NAME: joi.string().default('INSTAGRAM_SERVICE'),
+    WHATSAPP_SERVICE_NAME: joi.string().default('WHATSAPP_SERVICE'),
   })
   .unknown(true);
 
@@ -34,5 +38,11 @@ export const environment = {
   },
   facebook: {
     serviceName: envVars.FACEBOOK_SERVICE_NAME,
+  },
+  instagram: {
+    serviceName: envVars.INSTAGRAM_SERVICE_NAME,
+  },
+  whatsapp: {
+    serviceName: envVars.WHATSAPP_SERVICE_NAME,
   },
 };
