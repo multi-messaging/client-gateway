@@ -13,7 +13,7 @@ import {
   Headers,
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { catchError } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/config';
 @Controller('whatsapp/webhook')
 export class WhatsappWebhookController {
@@ -23,7 +23,7 @@ export class WhatsappWebhookController {
     private readonly client: ClientProxy,
   ) {}
   @Get()
-  verifyWebhook(
+  async verifyWebhook(
     @Query('hub.mode') mode: string,
     @Query('hub.challenge') challenge: string,
     @Query('hub.verify_token') verifyToken: string,
@@ -32,23 +32,23 @@ export class WhatsappWebhookController {
       `Verificación de webhook recibida: mode=${mode}, token=${verifyToken}`,
     );
 
-    return this.client
-      .send('whatsapp.webhook.verify', {
-        mode,
-        challenge,
-        verifyToken,
-      })
-      .pipe(
-        catchError((err) => {
-          this.logger.error('Error al verificar el webhook:', err);
-          throw new RpcException(err);
+    try {
+      return await firstValueFrom(
+        this.client.send('whatsapp.webhook.verify', {
+          mode,
+          challenge,
+          verifyToken,
         }),
       );
+    } catch (err) {
+      this.logger.error('Error al verificar el webhook:', err);
+      throw new RpcException(err);
+    }
   }
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  receiveMessage(
+  async receiveMessage(
     @Body() body: any,
     @Headers('x-hub-signature-256') signature?: string,
     @Req() req?: RawBodyRequest<Request>,
@@ -61,24 +61,27 @@ export class WhatsappWebhookController {
       const rawBody = req?.rawBody
         ? req.rawBody.toString()
         : JSON.stringify(body);
-      this.client
-        .send('whatsapp.webhook.verify-signature', {
-          rawBody,
-          signature,
-        })
-        .pipe(
-          catchError((err) => {
-            this.logger.error('Error al verificar la firma de WhatsApp:', err);
-            throw new RpcException(err);
+      try {
+        await firstValueFrom(
+          this.client.send('whatsapp.webhook.verify-signature', {
+            rawBody,
+            signature,
           }),
         );
-      this.logger.log('✅ Firma de WhatsApp verificada correctamente');
-    }
-    return this.client.send('whatsapp.webhook.message', body).pipe(
-      catchError((err) => {
-        this.logger.error('Error al procesar el mensaje de WhatsApp:', err);
+        this.logger.log('✅ Firma de WhatsApp verificada correctamente');
+      } catch (err) {
+        this.logger.error('Error al verificar la firma de WhatsApp:', err);
         throw new RpcException(err);
-      }),
-    );
+      }
+    }
+
+    try {
+      return await firstValueFrom(
+        this.client.send('whatsapp.webhook.message', body),
+      );
+    } catch (error) {
+      this.logger.error('Error al procesar el mensaje de WhatsApp:', error);
+      throw new RpcException(error);
+    }
   }
 }
