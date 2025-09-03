@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import {
+  WhatsappController,
   WhatsappMessengerController,
   WhatsappWebhookController,
 } from './controllers';
@@ -16,7 +17,11 @@ import { rabbitmqConfig } from 'src/config/rabbitmq.config';
       },
     ]),
   ],
-  controllers: [WhatsappWebhookController, WhatsappMessengerController],
+  controllers: [
+    WhatsappWebhookController,
+    WhatsappMessengerController,
+    WhatsappController,
+  ],
   providers: [],
 })
 export class WhatsappModule {}
