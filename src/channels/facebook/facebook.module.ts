@@ -12,7 +12,7 @@ import {
     ClientsModule.register([
       {
         name: environment.facebook.serviceName,
-        ...rabbitmqConfig,
+        ...rabbitmqConfig(environment.facebook.rabbitmqQueue),
       },
     ]),
   ],

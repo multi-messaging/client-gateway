@@ -12,7 +12,7 @@ import { rabbitmqConfig } from 'src/config/rabbitmq.config';
     ClientsModule.register([
       {
         name: environment.whatsapp.serviceName,
-        ...rabbitmqConfig,
+        ...rabbitmqConfig(environment.whatsapp.rabbitmqQueue),
       },
     ]),
   ],
